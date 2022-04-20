@@ -1,12 +1,34 @@
+/**
+ * The type of track this is
+ */
 export enum Type {
+    /**
+     * A normal song
+     */
     Track,
+
+    /**
+     * An event, containing only the `artist` column and no `title`. TODO: Should these be switched?
+     */
     Event
 }
 
+/**
+ * The available streaming services that may be linked.
+ */
 export enum Service {
+
+    /**
+     * Spotify, using the WITR Spotify account for credentials.
+     */
     Spotify
 }
 
+/**
+ * Gets the track type from a string.
+ *
+ * @param type The lowercase type
+ */
 function typeFromName(type: string): Type {
     if (type == 'track') {
         return Type.Track
@@ -20,6 +42,11 @@ function typeFromName(type: string): Type {
     // throw 'Invalid type: ' + type
 }
 
+/**
+ * Gets the streaming service from its name
+ *
+ * @param service The lowercase service name
+ */
 function serviceFromName(service: string): Service {
     if (service == 'spotify') {
         return Service.Spotify
@@ -30,25 +57,92 @@ function serviceFromName(service: string): Service {
     return Service.Spotify
 }
 
+/**
+ * Data for a track collected from a specific streaming service.
+ */
 export class StreamingLink {
+
+    /**
+     * The link to play the track from the service.
+     */
     link: string
+
+    /**
+     * A link to a low-res album art image (this should be used only for icons, generally well under 100x100 pixels big).
+     */
+    albumArt: string
+
+    /**
+     * The service this data is for.
+     */
     service: Service
 
-    constructor(links: string, service: Service) {
-        this.link = links;
+    /**
+     * Creates a StreamingLink.
+     *
+     * @param link The link to the song on the streaming service
+     * @param albumArt A link to the album art
+     * @param service The service this object is for
+     */
+    constructor(link: string, albumArt: string, service: Service) {
+        this.link = link;
+        this.albumArt = albumArt
         this.service = service;
     }
 }
 
+/**
+ * Either a song or event that may be displayed as a line in a logger instance.
+ */
 export class Track {
+
+    /**
+     * The unique ID of the track.
+     */
     id: number
+
+    /**
+     * The artist name of the track (If the type is `Type.Event` is an event, this will be the event description).
+     */
     artist: string
+
+    /**
+     * The title of the track (Blank if an event).
+     */
     title: string
+
+    /**
+     * The Date this track was played at.
+     */
     time: Date
+
+    /**
+     * The group this track belongs to.
+     */
     group: string // This will be a value of getGroups
+
+    /**
+     * The type of the track.
+     */
     type: Type
+
+    /**
+     * All available `StreamingLink`s for the track. If a streaming service couldn't find the track by its artist and
+     * title, it will not be present in the array.
+     */
     streaming: StreamingLink[]
 
+    /**
+     * Creates a Track.
+     *
+     * @param id The track's ID
+     * @param artist The artist name
+     * @param title The title
+     * @param time The time this was played at
+     * @param group The track's group
+     * @param type The type of track
+     * @param streaming Any available streaming links
+     */
     constructor(id: number, artist: string, title: string, time: Date, group: string, type: Type, streaming: StreamingLink[]) {
         this.id = id;
         this.artist = artist;
@@ -59,14 +153,27 @@ export class Track {
         this.streaming = streaming;
     }
 
+    /**
+     * Creates a `Track` from given JSON input (generally provided by the server).
+     *
+     * @param json The JSON input
+     */
     static fromJSON(json: any): Track {
         return new Track(json['id'], json['artist'], json['title'], new Date(Date.parse(json['time'])), json['group'], typeFromName(json['type']), Track.parseStreaming(json['streaming']))
     }
 
+    /**
+     * Parses a JSON array into an array of `StreamingLink`s.
+     *
+     * @param services The JSON array
+     */
     static parseStreaming(services: any[]): StreamingLink[] {
-        return services.map(json => new StreamingLink(json['link'], serviceFromName(json['service'])))
+        return services.map(json => new StreamingLink(json['link'], json['albumArt'], serviceFromName(json['service'])))
     }
 
+    /**
+     * Checks if the track is an event (checking by its group).
+     */
     isEvent(): boolean {
         return this.group == 'Event'
     }

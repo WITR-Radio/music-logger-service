@@ -1,6 +1,9 @@
 import {Track} from "./objects";
 import {fetchUrl} from "./requests";
 
+/**
+ * A handler to fetch, manipulate and delete tracks.
+ */
 export class TrackHandler {
 
     /**
@@ -25,11 +28,6 @@ export class TrackHandler {
     readonly listCount: number
 
     /**
-     * The URL to the websocket listening for new tracks. If this is undefined, websockets will not be enabled.
-     */
-    readonly websocketURL?: string
-
-    /**
      * The original URL to list tracks by
      */
     readonly originalListUrl: string
@@ -51,54 +49,14 @@ export class TrackHandler {
      * @param requestURL The URl of the backend server to start requests from
      * @param underground If requests should be sent to the underground database
      * @param listCount The amount of tracks to fetch in each listing
-     * @param websocketURL The URL to the websocket connecting to the backend. If not present, a websocket will never
-     *                     be established.
      */
-    constructor(setTracks: (setTracks: (oldTracks: Track[]) => Track[]) => void, requestURL: string, underground: boolean, listCount: number, websocketURL?: string) {
+    constructor(setTracks: (setTracks: (oldTracks: Track[]) => Track[]) => void, requestURL: string, underground: boolean, listCount: number) {
         this.setTracks = setTracks
         this.requestURL = requestURL
         this.underground = underground
         this.listCount = listCount
-        this.websocketURL = websocketURL
         this.originalListUrl = `${this.requestURL}/tracks/list`
         this.nextURL = `${this.originalListUrl}?count=${listCount}&underground=${this.underground}`
-    }
-
-    /**
-     * Connects to the websocket. If `websocketUrl` is undefined, this will do nothing.
-     *
-     * @return A promise of the open status (`true` indicated connected, false if no `websocketURL` is present)
-     */
-    connectWebsocket(): Promise<boolean> {
-        return new Promise((resolve, reject) => {
-            if (this.websocketURL == undefined) {
-                resolve(false)
-                return
-            }
-
-            try {
-                const webSocket = new WebSocket(this.websocketURL)
-
-                webSocket.onmessage = (event: MessageEvent) => {
-                    if (!this.searching) {
-                        this.manualAddTrack(Track.fromJSON(JSON.parse(event.data)))
-                    }
-                };
-
-                webSocket.onerror = (error) => {
-                    console.log(error);
-                    reject()
-                }
-
-                webSocket.onopen = (_) => {
-                    console.log('Connected to websocket!')
-                    resolve(true)
-                }
-            } catch (e) {
-                console.error(e)
-                reject()
-            }
-        })
     }
 
     /**
