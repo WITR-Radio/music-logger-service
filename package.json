@@ -1,0 +1,22 @@
+{
+  "name": "music-logger-service",
+  "version": "1.0.0",
+  "description": "Can log \"hello world\" and \"goodbye world\" to the console!",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "/dist"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/react": "^17.0.39",
+    "react": "^17.0.2"
+  },
+  "devDependencies": {
+    "typescript": "^4.6.3"
+  }
+}
