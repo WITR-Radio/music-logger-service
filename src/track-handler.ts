@@ -20,6 +20,11 @@ export class TrackHandler {
     readonly underground: boolean
 
     /**
+     * The amount of tracks to get each request.
+     */
+    readonly listCount: number
+
+    /**
      * The URL to the websocket listening for new tracks. If this is undefined, websockets will not be enabled.
      */
     readonly websocketURL?: string
@@ -45,16 +50,18 @@ export class TrackHandler {
      * @param setTracks A callback method to set the tracks' state in the UI
      * @param requestURL The URl of the backend server to start requests from
      * @param underground If requests should be sent to the underground database
+     * @param listCount The amount of tracks to fetch in each listing
      * @param websocketURL The URL to the websocket connecting to the backend. If not present, a websocket will never
      *                     be established.
      */
-    constructor(setTracks: (setTracks: (oldTracks: Track[]) => Track[]) => void, requestURL: string, underground: boolean, websocketURL?: string) {
+    constructor(setTracks: (setTracks: (oldTracks: Track[]) => Track[]) => void, requestURL: string, underground: boolean, listCount: number, websocketURL?: string) {
         this.setTracks = setTracks
         this.requestURL = requestURL
         this.underground = underground
+        this.listCount = listCount
         this.websocketURL = websocketURL
         this.originalListUrl = `${this.requestURL}/tracks/list`
-        this.nextURL = `${this.originalListUrl}?count=5&underground=${this.underground}`
+        this.nextURL = `${this.originalListUrl}?count=${listCount}&underground=${this.underground}`
     }
 
     /**
@@ -97,7 +104,7 @@ export class TrackHandler {
     /**
      * Loads more tracks (Setting new ones via `setTracks`). This may be used for initial loading as well.
      */
-    loadMoreTracks(): Promise<any> {
+    loadMoreTracks(): Promise<void> {
         return this.loadTracksFromUrl(this.nextURL)
     }
 
@@ -109,19 +116,18 @@ export class TrackHandler {
      *                     the fetched collection)
      * @param searching If this is a searching request (ignores incoming websocket tracks if true)
      */
-    loadTracksFromUrl(url: string, overrideList: boolean = false, searching: boolean = false): Promise<any> {
+    loadTracksFromUrl(url: string, overrideList: boolean = false, searching: boolean = false): Promise<void> {
         this.searching = searching
         return fetchUrl(url)
             .then(async res => {
                 if (res.status != 200) {
                     console.error(`[tracks/list] Erroneous status of ${res.status}: ${await res.json()}`)
-                    return []
+                    return
                 }
 
                 let json = await res.json()
 
-                // @ts-ignore
-                setNextUrl(json['_links']['next'])
+                this.nextURL = json['_links']['next']
 
                 let tracks = json['tracks'].map((track: any) => Track.fromJSON(track))
 
@@ -138,7 +144,7 @@ export class TrackHandler {
      *
      * @param track The track to delete
      */
-    deleteTrack(track: Track): Promise<any> {
+    deleteTrack(track: Track): Promise<void> {
         return fetchUrl(`${this.requestURL}/tracks/delete`, {
             id: track.id.toString(),
             underground: `${this.underground}`
@@ -163,7 +169,7 @@ export class TrackHandler {
      * @param date The date the track was played
      * @param event If this is adding an event
      */
-    submitAdd(title: string | undefined, artist: string | undefined, group: string | undefined, date: Date, event: boolean): Promise<any> {
+    submitAdd(title: string | undefined, artist: string | undefined, group: string | undefined, date: Date, event: boolean): Promise<void> {
         return fetchUrl(`${this.requestURL}/tracks/add`, {underground: `${this.underground}`}, {
             method: 'POST',
             body: JSON.stringify({
@@ -193,8 +199,8 @@ export class TrackHandler {
      * @param startDate The inclusive start date to filter tracks by
      * @param endDate The inclusive end date to filter tracks by
      */
-    searchTracks(artist: string | undefined, title: string | undefined, startDate: Date | undefined, endDate: Date | undefined): Promise<any> {
-        let urlQuery = new URLSearchParams({count: '5'})
+    searchTracks(artist: string | undefined, title: string | undefined, startDate: Date | undefined, endDate: Date | undefined): Promise<void> {
+        let urlQuery = new URLSearchParams({count: `${this.listCount}`})
         let searching = false
 
         artist ??= ''
@@ -216,6 +222,50 @@ export class TrackHandler {
         }
 
         return this.loadTracksFromUrl(`${this.originalListUrl}?${urlQuery}`, true, searching)
+    }
+
+    /**
+     * Updates the `Track` with the given information, updating the UI with `setTracks`.
+     *
+     * @param id The original ID of the track
+     * @param track The `Track` object
+     * @param title The new title of the track
+     * @param artist The new artist of the track
+     * @param group The new group of the track
+     * @param date The new date of the track
+     */
+    updateTrack(id: number, track: Track, title: string, artist: string, group: string, date: Date): Promise<void> {
+        return fetchUrl(`${this.requestURL}/tracks/update`, {underground: `${this.underground}`}, {
+            method: 'PATCH',
+            body: JSON.stringify({
+                'id': id,
+                'title': title,
+                ...(!track.isEvent() && {
+                    'artist': artist,
+                    'group': group
+                }),
+                'time': date.getTime()
+            })
+        }).then(async res => {
+            if (res.status != 200) {
+                console.error(`[tracks/update] Erroneous status of ${res.status}: ${await res.json()}`)
+                return
+            }
+
+            this.setTracks(old => {
+                let editedTrack = old.find(track => track.id == id)
+                if (editedTrack == undefined) {
+                    console.error('Edited track not found!');
+                    return old
+                }
+
+                editedTrack.title = title
+                editedTrack.artist = artist
+                editedTrack.group = group
+                editedTrack.time = date
+                return old
+            })
+        })
     }
 
     /**

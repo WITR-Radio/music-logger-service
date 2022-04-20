@@ -1,3 +1,10 @@
+/**
+ * Fetches an absolute URL, with additional paramter and request information.
+ *
+ * @param absolutePath The path to request (without query parameters)
+ * @param params The query parameters
+ * @param init The additional request data
+ */
 export function fetchUrl(absolutePath: string, params?: Record<string, string>,
                          init?: RequestInit | undefined): Promise<Response> {
     let headers: HeadersInit = init?.method == 'POST' ? {
@@ -12,10 +19,6 @@ export function fetchUrl(absolutePath: string, params?: Record<string, string>,
     }
 
     return fetch(`${absolutePath}${paramString}`, appendHeaders(headers, init))
-}
-
-export function params(array: string[][]): URLSearchParams {
-    return new URLSearchParams(array)
 }
 
 /**
