@@ -158,7 +158,7 @@ export class TrackHandler {
      * @param endDate The inclusive end date to filter tracks by
      */
     searchTracks(artist: string | undefined, title: string | undefined, startDate: Date | undefined, endDate: Date | undefined): Promise<void> {
-        let urlQuery = new URLSearchParams({count: `${this.listCount}`})
+        let urlQuery = new URLSearchParams({count: `${this.listCount}`, underground: `${this.underground}`})
         let searching = false
 
         artist ??= ''
