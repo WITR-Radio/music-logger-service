@@ -11,7 +11,7 @@ import {fetchUrl} from "./requests";
  * @param underground If requests should be sent to the underground database
  */
 export async function getGroups(requestURL: string, underground: boolean): Promise<string[]> {
-    return fetchUrl(`${requestURL}/groups/list`, {underground: `${underground}`}).then(res => {
+    return fetchUrl(`${requestURL}/api/groups/list`, {underground: `${underground}`}).then(res => {
         if (res.status != 200) {
             console.log(`[groups/list] Erroneous status of ${res.status}: ${res.json()}`)
             return []

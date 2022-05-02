@@ -17,6 +17,11 @@ export class TrackReceiver {
     readonly underground: boolean
 
     /**
+     * If the currently playing track should be sent upon connecting
+     */
+    readonly sendInitial: boolean
+
+    /**
      * Invoked when a track is received from the websocket.
      */
     readonly receiveTrack: (track: Track) => void
@@ -28,11 +33,13 @@ export class TrackReceiver {
      *                     be established.
      * @param underground If `true`, only tracks on the underground station will be broadcasted. If `false`, only FM
      *                    tracks will be sent.
+     * @param sendInitial If the currently playing track should be sent upon connecting
      * @param receiveTrack The handler to be invoked when a track is received
      */
-    constructor(websocketURL: string, underground: boolean, receiveTrack: (track: Track) => void) {
+    constructor(websocketURL: string, underground: boolean, sendInitial: boolean, receiveTrack: (track: Track) => void) {
         this.websocketURL = websocketURL
         this.underground = underground
+        this.sendInitial = sendInitial
         this.receiveTrack = receiveTrack
     }
 
@@ -49,8 +56,8 @@ export class TrackReceiver {
             }
 
             try {
-                let urlQuery = new URLSearchParams({underground: `${this.underground}`})
-                const webSocket = new WebSocket(`${this.websocketURL}?${urlQuery}`)
+                let urlQuery = new URLSearchParams({underground: `${this.underground}`, sendInitial: `${this.sendInitial}`})
+                const webSocket = new WebSocket(`${this.websocketURL}/api/tracks/stream?${urlQuery}`)
 
                 webSocket.onmessage = (event: MessageEvent) => {
                     this.receiveTrack(Track.fromJSON(JSON.parse(event.data)))

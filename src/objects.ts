@@ -65,17 +65,17 @@ export class StreamingLink {
     /**
      * The link to play the track from the service.
      */
-    link: string
+    link: string | undefined
 
     /**
      * A link to a low-res album art image (this should be used only for icons, generally well under 100x100 pixels big).
      */
-    albumArt: string
+    albumArt: string | undefined
 
     /**
      * The service this data is for.
      */
-    service: Service
+    service: Service | undefined
 
     /**
      * Creates a StreamingLink.
@@ -84,7 +84,7 @@ export class StreamingLink {
      * @param albumArt A link to the album art
      * @param service The service this object is for
      */
-    constructor(link: string, albumArt: string, service: Service) {
+    constructor(link: string | undefined, albumArt: string | undefined, service: Service | undefined) {
         this.link = link;
         this.albumArt = albumArt
         this.service = service;
@@ -176,5 +176,16 @@ export class Track {
      */
     isEvent(): boolean {
         return this.group == 'Event'
+    }
+
+    /**
+     * Gets the album art (if found) from the Spotify service.
+     */
+    getAlbumArt(): string | undefined {
+        if (this.streaming.length == 0) {
+            return undefined
+        }
+
+        return this.streaming.find(streaming => streaming.albumArt != undefined)?.albumArt
     }
 }

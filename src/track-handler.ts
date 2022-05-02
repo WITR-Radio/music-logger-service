@@ -55,7 +55,7 @@ export class TrackHandler {
         this.requestURL = requestURL
         this.underground = underground
         this.listCount = listCount
-        this.originalListUrl = `${this.requestURL}/tracks/list`
+        this.originalListUrl = `${this.requestURL}/api/tracks/list`
         this.nextURL = `${this.originalListUrl}?count=${listCount}&underground=${this.underground}`
     }
 
@@ -103,7 +103,7 @@ export class TrackHandler {
      * @param track The track to delete
      */
     deleteTrack(track: Track): Promise<void> {
-        return fetchUrl(`${this.requestURL}/tracks/delete`, {
+        return fetchUrl(`${this.requestURL}/api/tracks/delete`, {
             id: track.id.toString(),
             underground: `${this.underground}`
         }, {
@@ -128,7 +128,7 @@ export class TrackHandler {
      * @param event If this is adding an event
      */
     submitAdd(title: string | undefined, artist: string | undefined, group: string | undefined, date: Date, event: boolean): Promise<void> {
-        return fetchUrl(`${this.requestURL}/tracks/add`, {underground: `${this.underground}`}, {
+        return fetchUrl(`${this.requestURL}/api/tracks/add`, {underground: `${this.underground}`}, {
             method: 'POST',
             body: JSON.stringify({
                 'title': title,
@@ -193,7 +193,7 @@ export class TrackHandler {
      * @param date The new date of the track
      */
     updateTrack(id: number, track: Track, title: string, artist: string, group: string, date: Date): Promise<void> {
-        return fetchUrl(`${this.requestURL}/tracks/update`, {underground: `${this.underground}`}, {
+        return fetchUrl(`${this.requestURL}/api/tracks/update`, {underground: `${this.underground}`}, {
             method: 'PATCH',
             body: JSON.stringify({
                 'id': id,
