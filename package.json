@@ -12,18 +12,17 @@
     "/dist"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc --build"
   },
   "author": "",
   "license": "SEE LICENSE IN LICENSE.md",
   "dependencies": {
-    "moment": "^2.29.3"
+    "@types/react": "^17.0.39",
+    "moment": "^2.29.3",
+    "react": "17.0.2"
   },
   "devDependencies": {
     "typescript": "^4.5.2"
-  },
-  "peerDependencies": {
-    "@types/react": "^17.0.39",
-    "react": "17.0.2"
   }
 }
