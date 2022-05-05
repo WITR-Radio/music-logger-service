@@ -1,4 +1,4 @@
-import React, {ChangeEvent, useState} from 'react'
+import {ChangeEvent, useState} from 'react'
 
 import moment from "moment";
 
@@ -30,6 +30,11 @@ export default function useTimeController(props: TimeControllerProps) {
     const [calendarDate, setCalendarDate] = useState<Date>(props.date)
     const [_moment, setMoment] = useState<moment.Moment>(moment(props.date))
 
+    /**
+     * Updates the calendar date and invokes `onChanged` in the props.
+     *
+     * @param newDate The new Date to process
+     */
     function handleDate(newDate: Date) {
         setMoment(old => old.set({
             year: newDate.getFullYear(),
@@ -41,6 +46,12 @@ export default function useTimeController(props: TimeControllerProps) {
         updateDate()
     }
 
+    /**
+     * Updates the internal tracking date and invokes `onChanged` afterwards.
+     *
+     * @param amOverride `true` if the clock should switch to AM, `false` for PM. If unset, it will default to its
+     *                    previous value.
+     */
     function updateDate(amOverride: boolean = am) {
         const parsedTime = moment(`${_moment.format('h:mm')} ${amOverride ? 'AM' : 'PM'}`, ['h:mm A']);
         const merged = moment(_moment.toDate()).set({
@@ -51,6 +62,11 @@ export default function useTimeController(props: TimeControllerProps) {
         props.onChange(merged.toDate());
     }
 
+    /**
+     * Updates the hours from an event `HTMLInputEvent` with the value of the hour.
+     *
+     * @param e The ChangeEvent
+     */
     function handleHour(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
         let value = e.target.value
         let hour = value.length == 0 ? 1 : parseInt(value)
@@ -69,6 +85,11 @@ export default function useTimeController(props: TimeControllerProps) {
         })
     }
 
+    /**
+     * Updates the hours from an event `HTMLInputEvent` with the value of the minute.
+     *
+     * @param e The ChangeEvent
+     */
     function handleMinute(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
         let value = e.target.value
         let minute = value.length == 0 ? 0 : parseInt(value)
@@ -87,6 +108,11 @@ export default function useTimeController(props: TimeControllerProps) {
         })
     }
 
+    /**
+     * Changes the AM/PM status of the time.
+     *
+     * @param am `true` if the time is AM, `false` if otherwise
+     */
     function handleAmPm(am: boolean) {
         setAm(am)
         let newDate = new Date(props.date)
@@ -95,6 +121,11 @@ export default function useTimeController(props: TimeControllerProps) {
         updateDate(am)
     }
 
+    /**
+     * If the given hour is above 12, subtract 12 from it.
+     *
+     * @param hour The clamped hour
+     */
     function processHour(hour: number) {
         if (hour > 12) {
             return hour - 12;
@@ -104,9 +135,6 @@ export default function useTimeController(props: TimeControllerProps) {
     }
 
     return {
-        /**
-         * Updates the calendar date and invoked `onChanged` on the
-         */
         handleDate: handleDate,
         updateDate: updateDate,
         handleHour: handleHour,

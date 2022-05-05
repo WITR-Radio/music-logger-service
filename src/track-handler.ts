@@ -10,7 +10,7 @@ export class TrackHandler {
      * Sets a new list of tracks for the UI to display.
      * This should generally be a `React.Dispatch` (from a `useState<Track>` controlling the displayed tracks)
      */
-    setTracks: (set: (oldTracks: Track[]) => Track[]) => void
+    readonly setTracks: (set: (oldTracks: Track[]) => Track[]) => void
 
     /**
      * The base server URL to create all requests off of.
