@@ -19,8 +19,6 @@ interface TimeControllerProps {
     onChange: (date: Date) => void
 }
 
-// TODO: Finish docs
-
 /**
  * A hook for handling controlling logic for time/date selection components. This is used for searching/filtering
  * results, and is tedious/easy to mess up on its own.
@@ -106,6 +104,9 @@ export default function useTimeController(props: TimeControllerProps) {
     }
 
     return {
+        /**
+         * Updates the calendar date and invoked `onChanged` on the
+         */
         handleDate: handleDate,
         updateDate: updateDate,
         handleHour: handleHour,

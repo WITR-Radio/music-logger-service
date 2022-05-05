@@ -1,7 +1,11 @@
 {
-  "name": "music-logger-service",
-  "version": "1.0.0",
-  "description": "Can log \"hello world\" and \"goodbye world\" to the console!",
+  "name": "@witr-radio/music-logger-service",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/WITR-Radio/music-logger-service"
+  },
+  "version": "0.0.1",
+  "description": "A library to handle client-side actions relating to the music logger API.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -11,7 +15,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "license": "ISC",
+  "license": "SEE LICENSE IN LICENSE.md",
   "dependencies": {
     "moment": "^2.29.3"
   },
