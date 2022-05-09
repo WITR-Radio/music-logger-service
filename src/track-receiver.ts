@@ -46,9 +46,10 @@ export class TrackReceiver {
     /**
      * Connects to the websocket. If `websocketUrl` is undefined, this will do nothing.
      *
+     * @param autoReconnect If `true`, if the connection is closed it will reinvoke this method after 3 seconds
      * @return A promise of the open status (`true` indicated connected, false if no `websocketURL` is present)
      */
-    connectWebsocket(): Promise<boolean> {
+    connectWebsocket(autoReconnect: boolean = false): Promise<boolean> {
         return new Promise((resolve, reject) => {
             if (this.websocketURL == undefined) {
                 resolve(false)
@@ -71,6 +72,14 @@ export class TrackReceiver {
                 webSocket.onopen = (_) => {
                     console.log('Connected to websocket!')
                     resolve(true)
+                }
+
+                if (autoReconnect) {
+                    webSocket.onclose = (_) => {
+                        setTimeout(() => {
+                            this.connectWebsocket(autoReconnect)
+                        }, 3000)
+                    }
                 }
             } catch (e) {
                 console.error(e)
