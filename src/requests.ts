@@ -7,7 +7,7 @@
  */
 export function fetchUrl(absolutePath: string, params?: Record<string, string>,
                          init?: RequestInit | undefined): Promise<Response> {
-    let headers: HeadersInit = init?.method == 'POST' ? {
+    let headers: HeadersInit = (init?.method == 'POST' || init?.method == 'PATCH') ? {
         'Content-Type': 'application/json'
     } : {}
 

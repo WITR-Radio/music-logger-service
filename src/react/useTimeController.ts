@@ -122,16 +122,10 @@ export default function useTimeController(props: TimeControllerProps) {
     }
 
     /**
-     * If the given hour is above 12, subtract 12 from it.
-     *
-     * @param hour The clamped hour
+     * Gets the default hour from the default date.
      */
-    function processHour(hour: number) {
-        if (hour > 12) {
-            return hour - 12;
-        }
-
-        return hour;
+    function defaultHour() {
+        return moment(props.date).format('hh')
     }
 
     return {
@@ -140,7 +134,7 @@ export default function useTimeController(props: TimeControllerProps) {
         handleHour: handleHour,
         handleMinute: handleMinute,
         handleAmPm: handleAmPm,
-        processHour: processHour,
+        defaultHour: defaultHour,
         calendarDate: calendarDate,
         am: am
     }

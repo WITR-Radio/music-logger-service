@@ -70,7 +70,7 @@ export class StreamingLink {
     /**
      * A link to a low-res album art image (this should be used only for icons, generally well under 100x100 pixels big).
      */
-    albumArt: string | undefined
+    artwork: string | undefined
 
     /**
      * The service this data is for.
@@ -86,7 +86,7 @@ export class StreamingLink {
      */
     constructor(link: string | undefined, albumArt: string | undefined, service: Service | undefined) {
         this.link = link;
-        this.albumArt = albumArt
+        this.artwork = albumArt
         this.service = service;
     }
 }
@@ -168,7 +168,7 @@ export class Track {
      * @param services The JSON array
      */
     static parseStreaming(services: any[]): StreamingLink[] {
-        return services.map(json => new StreamingLink(json['link'], json['albumArt'], serviceFromName(json['service'])))
+        return services.map(json => new StreamingLink(json['link'], json['artwork'], serviceFromName(json['service'])))
     }
 
     /**
@@ -186,6 +186,6 @@ export class Track {
             return undefined
         }
 
-        return this.streaming.find(streaming => streaming.albumArt != undefined)?.albumArt
+        return this.streaming.find(streaming => streaming.artwork != undefined)?.artwork
     }
 }
