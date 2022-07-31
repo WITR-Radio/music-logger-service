@@ -4,7 +4,7 @@
     "type": "git",
     "url": "https://github.com/WITR-Radio/music-logger-service"
   },
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "A library to handle client-side actions relating to the music logger API.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -17,10 +17,12 @@
   },
   "author": "",
   "license": "SEE LICENSE IN LICENSE.md",
+  "peerDependencies": {
+    "react": ">=17.0"
+  },
   "dependencies": {
     "@types/react": "^17.0.39",
-    "moment": "^2.29.3",
-    "react": "17.0.2"
+    "moment": "^2.29.3"
   },
   "devDependencies": {
     "typescript": "^4.5.2"

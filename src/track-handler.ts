@@ -131,7 +131,7 @@ export class TrackHandler {
         return fetchUrl(`${this.requestURL}/api/tracks/add`, {underground: `${this.underground}`}, {
             method: 'POST',
             body: JSON.stringify({
-                'title': title,
+                'title': event ? '' : title, // TODO: Make this null when the backend is updated!
                 'artist': artist,
                 'group': event ? 'Event' : group,
                 'time': date.getTime()
