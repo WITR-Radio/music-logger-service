@@ -14,17 +14,17 @@ export class TrackReceiver {
     /**
      * If this should only broadcast tracks on the underground station.
      */
-    readonly underground: boolean
-
-    /**
-     * If the currently playing track should be sent upon connecting
-     */
-    readonly sendInitial: boolean
+    underground: boolean
 
     /**
      * Invoked when a track is received from the websocket.
      */
     readonly receiveTrack: (track: Track) => void
+
+    private webSocket: WebSocket | undefined
+
+    // The type is any to replace the NodeJS.Timeout type
+    private heartbeatInterval?: any
 
     /**
      * Creates a `TrackReceiver` object to handle receiving tracks when they are added.
@@ -33,52 +33,54 @@ export class TrackReceiver {
      *                     be established.
      * @param underground If `true`, only tracks on the underground station will be broadcasted. If `false`, only FM
      *                    tracks will be sent.
-     * @param sendInitial If the currently playing track should be sent upon connecting
      * @param receiveTrack The handler to be invoked when a track is received
      */
-    constructor(websocketURL: string, underground: boolean, sendInitial: boolean, receiveTrack: (track: Track) => void) {
+    constructor(websocketURL: string, underground: boolean, receiveTrack: (track: Track) => void) {
         this.websocketURL = websocketURL
         this.underground = underground
-        this.sendInitial = sendInitial
         this.receiveTrack = receiveTrack
     }
 
     /**
-     * Connects to the websocket. If `websocketUrl` is undefined, this will do nothing.
+     * Connects to the websocket. If `websocketUrl` is undefined or {@link webSocket} is defined, this will do nothing.
      *
      * @param autoReconnect If `true`, if the connection is closed it will reinvoke this method after 3 seconds
      * @return A promise of the open status (`true` indicated connected, false if no `websocketURL` is present)
      */
     connectWebsocket(autoReconnect: boolean = false): Promise<boolean> {
         return new Promise((resolve, reject) => {
-            if (this.websocketURL == undefined) {
+            if (this.websocketURL == undefined || this.webSocket != undefined) {
                 resolve(false)
                 return
             }
 
             try {
-                let urlQuery = new URLSearchParams({underground: `${this.underground}`, sendInitial: `${this.sendInitial}`})
-                const webSocket = new WebSocket(`${this.websocketURL}/api/tracks/stream?${urlQuery}`)
+                let urlQuery = new URLSearchParams({underground: `${this.underground}`})
+                this.webSocket = new WebSocket(`${this.websocketURL}/api/tracks/stream?${urlQuery}`)
 
-                webSocket.onmessage = (event: MessageEvent) => {
+                this.webSocket.onmessage = (event: MessageEvent) => {
                     this.receiveTrack(Track.fromJSON(JSON.parse(event.data)))
                 };
 
-                webSocket.onerror = (error) => {
+                this.webSocket.onerror = (error) => {
                     console.error(error);
                     reject()
                 }
 
-                webSocket.onopen = (_) => {
+                this.webSocket.onopen = (_) => {
                     console.debug('Connected to websocket!')
                     resolve(true)
                 }
 
                 // Heartbeat every 50 seconds
-                setInterval(() => this.heartbeat(webSocket), 50000)
+                this.heartbeatInterval = setInterval(() => {
+                    if (this.webSocket != undefined) {
+                        this.heartbeat(this.webSocket);
+                    }
+                }, 50000)
 
                 if (autoReconnect) {
-                    webSocket.onclose = (_) => {
+                    this.webSocket.onclose = (_) => {
                         setTimeout(() => {
                             this.connectWebsocket(autoReconnect)
                         }, 3000)
@@ -100,5 +102,37 @@ export class TrackReceiver {
         if (websocket.readyState == WebSocket.OPEN) {
             websocket.send(JSON.stringify({'heartbeat': ''}));
         }
+    }
+
+    /**
+     * If the websocket is open, the currently playing track is requested. This will be sent to {@link receiveTrack}.
+     *
+     * @return If the track could be requested. This gives no indication if the track was actually received, just if it
+     *         was requested
+     */
+    requestCurrentTrack(): boolean {
+        if (this.webSocket == undefined || this.webSocket.readyState != WebSocket.OPEN) {
+            return false
+        }
+
+        this.webSocket.send(JSON.stringify({'request': 'current'}))
+        return true
+    }
+
+    /**
+     * Sets the receiver to listen to underground or FM. An update will send the currently playing track on the stream.
+     *
+     * @param underground `true` if underground should be listened to
+     */
+    setUnderground(underground: boolean): void {
+        if (this.underground == underground) {
+            return
+        }
+
+        console.log('setUndg ' + underground);
+        this.underground = underground
+
+        clearInterval(this.heartbeatInterval)
+        this.webSocket?.close()
     }
 }
