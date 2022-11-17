@@ -65,14 +65,17 @@ export class TrackReceiver {
                 };
 
                 webSocket.onerror = (error) => {
-                    console.log(error);
+                    console.error(error);
                     reject()
                 }
 
                 webSocket.onopen = (_) => {
-                    console.log('Connected to websocket!')
+                    console.debug('Connected to websocket!')
                     resolve(true)
                 }
+
+                // Heartbeat every 50 seconds
+                setInterval(() => this.heartbeat(webSocket), 50000)
 
                 if (autoReconnect) {
                     webSocket.onclose = (_) => {
@@ -86,5 +89,16 @@ export class TrackReceiver {
                 reject()
             }
         })
+    }
+
+    /**
+     * Sends a heartbeat message to the websocket, if it is open.
+     *
+     * @param websocket The websocket to send the heartbeat to
+     */
+    private heartbeat(websocket: WebSocket): void {
+        if (websocket.readyState == WebSocket.OPEN) {
+            websocket.send(JSON.stringify({'heartbeat': ''}));
+        }
     }
 }
