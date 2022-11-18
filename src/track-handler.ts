@@ -28,9 +28,14 @@ export class TrackHandler {
     readonly listCount: number
 
     /**
-     * The original URL to list tracks by
+     * The base URL to add query parameters onto for track listing.
      */
-    readonly originalListUrl: string
+    readonly baseListUrl: string
+
+    /**
+     * The first listing URL requested, stored for resetting.
+     */
+    readonly originalURL: string
 
     /**
      * The next URL that will be fetched to list tracks
@@ -55,8 +60,16 @@ export class TrackHandler {
         this.requestURL = requestURL
         this.underground = underground
         this.listCount = listCount
-        this.originalListUrl = `${this.requestURL}/api/tracks/list`
-        this.nextURL = `${this.originalListUrl}?count=${listCount}&underground=${this.underground}`
+        this.baseListUrl = `${this.requestURL}/api/tracks/list`
+        this.nextURL = `${this.baseListUrl}?count=${listCount}&underground=${this.underground}`
+        this.originalURL = this.nextURL
+    }
+
+    /**
+     * Resets the current page.
+     */
+    reset(): void {
+        this.nextURL = this.originalURL
     }
 
     /**
@@ -179,7 +192,7 @@ export class TrackHandler {
             urlQuery.append('end', endDate.getTime().toString())
         }
 
-        return this.loadTracksFromUrl(`${this.originalListUrl}?${urlQuery}`, true, searching)
+        return this.loadTracksFromUrl(`${this.baseListUrl}?${urlQuery}`, true, searching)
     }
 
     /**

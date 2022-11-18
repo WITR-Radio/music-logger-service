@@ -4,7 +4,7 @@
     "type": "git",
     "url": "https://github.com/WITR-Radio/music-logger-service"
   },
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "A library to handle client-side actions relating to the music logger API.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
