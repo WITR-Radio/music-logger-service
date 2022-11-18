@@ -189,3 +189,34 @@ export class Track {
         return this.streaming.find(streaming => streaming.artwork != undefined)?.artwork
     }
 }
+
+/**
+ * A track that has been sent from the server.
+ */
+export class TrackBroadcast {
+
+    /**
+     * The track this object holds.
+     */
+    readonly track: Track
+
+    /**
+     * If the track was manually requested. `false` means this was a normal broadcast track that is currently being
+     * played.
+     */
+    readonly requested: boolean
+
+    constructor(track: Track, requested: boolean) {
+        this.track = track;
+        this.requested = requested;
+    }
+
+    /**
+     * Creates a {@link TrackBroadcast} from given JSON input.
+     *
+     * @param json The JSON input
+     */
+    static fromJSON(json: any): TrackBroadcast {
+        return new TrackBroadcast(Track.fromJSON(json['track']), json['requested'])
+    }
+}

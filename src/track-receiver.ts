@@ -1,4 +1,4 @@
-import {Track} from "./objects";
+import {Track, TrackBroadcast} from "./objects";
 
 /**
  * A handler to allow for the invoker to receive live updates on when tracks are added.
@@ -19,7 +19,7 @@ export class TrackReceiver {
     /**
      * Invoked when a track is received from the websocket.
      */
-    readonly receiveTrack: (track: Track) => void
+    readonly receiveTrack: (track: TrackBroadcast) => void
 
     private webSocket: WebSocket | undefined
 
@@ -35,7 +35,7 @@ export class TrackReceiver {
      *                    tracks will be sent.
      * @param receiveTrack The handler to be invoked when a track is received
      */
-    constructor(websocketURL: string, underground: boolean, receiveTrack: (track: Track) => void) {
+    constructor(websocketURL: string, underground: boolean, receiveTrack: (track: TrackBroadcast) => void) {
         this.websocketURL = websocketURL
         this.underground = underground
         this.receiveTrack = receiveTrack
@@ -44,10 +44,9 @@ export class TrackReceiver {
     /**
      * Connects to the websocket. If `websocketUrl` is undefined or {@link webSocket} is defined, this will do nothing.
      *
-     * @param autoReconnect If `true`, if the connection is closed it will reinvoke this method after 3 seconds
      * @return A promise of the open status (`true` indicated connected, false if no `websocketURL` is present)
      */
-    connectWebsocket(autoReconnect: boolean = false): Promise<boolean> {
+    connectWebsocket(): Promise<boolean> {
         return new Promise((resolve, reject) => {
             if (this.websocketURL == undefined || this.webSocket != undefined) {
                 resolve(false)
@@ -59,7 +58,7 @@ export class TrackReceiver {
                 this.webSocket = new WebSocket(`${this.websocketURL}/api/tracks/stream?${urlQuery}`)
 
                 this.webSocket.onmessage = (event: MessageEvent) => {
-                    this.receiveTrack(Track.fromJSON(JSON.parse(event.data)))
+                    this.receiveTrack(TrackBroadcast.fromJSON(JSON.parse(event.data)))
                 };
 
                 this.webSocket.onerror = (error) => {
@@ -79,12 +78,10 @@ export class TrackReceiver {
                     }
                 }, 50000)
 
-                if (autoReconnect) {
-                    this.webSocket.onclose = (_) => {
-                        setTimeout(() => {
-                            this.connectWebsocket(autoReconnect)
-                        }, 3000)
-                    }
+                this.webSocket.onclose = (_) => {
+                    setTimeout(() => {
+                        this.connectWebsocket()
+                    }, 3000)
                 }
             } catch (e) {
                 console.error(e)
@@ -123,16 +120,18 @@ export class TrackReceiver {
      * Sets the receiver to listen to underground or FM. An update will send the currently playing track on the stream.
      *
      * @param underground `true` if underground should be listened to
+     * @return The {@link connectWebsocket} status of the new websocket
      */
-    setUnderground(underground: boolean): void {
+    setUnderground(underground: boolean): Promise<boolean> {
         if (this.underground == underground) {
-            return
+            return Promise.resolve<boolean>(false)
         }
 
-        console.log('setUndg ' + underground);
         this.underground = underground
 
         clearInterval(this.heartbeatInterval)
         this.webSocket?.close()
+        this.webSocket = undefined
+        return this.connectWebsocket()
     }
 }
