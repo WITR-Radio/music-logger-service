@@ -7,6 +7,6 @@ Usage in package.json:
 ```json
 "dependencies": {
   ...
-  "@witr-radio/music-logger-service": "^0.0.1"
+  "@witr-radio/music-logger-service": "^0.0.7"
 }
 ```
